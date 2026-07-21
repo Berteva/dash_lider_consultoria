@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Consultoria XP Inc. — Centro-Oeste &amp; MG</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -164,6 +163,26 @@ tr:hover td { background: rgba(255,255,255,0.03); }
 .uc h3 { font-size: 12.5px; margin: 0 0 4px 0; }
 .uc p { font-size: 10.5px; color: var(--text-muted); margin: 0 0 8px 0; }
 .uc .ust { font-size: 11px; color: var(--text-muted); }
+.uc textarea {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 10.5px;
+  padding: 8px;
+  margin-bottom: 6px;
+}
+.uc textarea::placeholder { color: var(--text-muted); }
+.uc .uc-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.uc .btn-limpar {
+  background: transparent; border: none; color: var(--text-muted); font-size: 10.5px;
+  cursor: pointer; text-decoration: underline; padding: 0;
+}
+.uc .btn-limpar:hover { color: var(--text-main); }
 
 #btn-processar { background: var(--xp-yellow); color: #1A1A2E; border: none; border-radius: 12px; padding: 14px 40px; font-size: 15px; font-weight: 900; cursor: pointer; }
 #btn-processar:disabled { cursor: default; }
@@ -218,61 +237,62 @@ canvas { max-height: 340px; }
 <div id="pag-upload" class="pag on">
   <div class="alerta">
     ⚠️ Nenhum dado é enviado a servidores externos. Todo o processamento ocorre localmente, no seu navegador.
-    Carregue as planilhas abaixo (formatos .xlsx, .xls ou .csv) e clique em <b>Processar planilhas selecionadas</b>.
+    No Excel, selecione o intervalo <b>com a linha de cabeçalho incluída</b>, copie (Ctrl+C) e cole (Ctrl+V) no campo
+    correspondente abaixo. Depois clique em <b>Processar dados colados</b>.
   </div>
 
   <div class="ugrid">
     <div class="uc" id="uc-col">
       <h3>📋 Colaboradores</h3>
       <p>Código · Nome · UF · Função · Hierarquia · Status</p>
-      <input type="file" id="fi-col" accept=".xlsx,.xls,.csv"
-        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
-      <div class="ust" id="us-col">Aguardando seleção...</div>
+      <div class="uc-actions"><span></span><button class="btn-limpar" onclick="limparCard('col')">limpar</button></div>
+      <textarea id="ta-col" placeholder="Cole aqui (Ctrl+V) os dados copiados do Excel, com a linha de cabeçalho incluída..."></textarea>
+      <div class="ust" id="us-col">Aguardando colagem...</div>
     </div>
 
     <div class="uc" id="uc-crm">
       <h3>🔄 Indicações CRM</h3>
       <p>Assessor · Fase · Valor · Data · Coordenador · Líder</p>
-      <input type="file" id="fi-crm" accept=".xlsx,.xls,.csv"
-        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
-      <div class="ust" id="us-crm">Aguardando seleção...</div>
+      <div class="uc-actions"><span></span><button class="btn-limpar" onclick="limparCard('crm')">limpar</button></div>
+      <textarea id="ta-crm" placeholder="Cole aqui (Ctrl+V) os dados copiados do Excel, com a linha de cabeçalho incluída..."></textarea>
+      <div class="ust" id="us-crm">Aguardando colagem...</div>
     </div>
 
     <div class="uc" id="uc-res">
       <h3>🏆 Resultados Finalísticos</h3>
       <p>Coordenador · Líder · Assessor · AuM · Receita · ROA · NPS</p>
-      <input type="file" id="fi-res" accept=".xlsx,.xls,.csv"
-        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
-      <div class="ust" id="us-res">Aguardando seleção...</div>
+      <div class="uc-actions"><span></span><button class="btn-limpar" onclick="limparCard('res')">limpar</button></div>
+      <textarea id="ta-res" placeholder="Cole aqui (Ctrl+V) os dados copiados do Excel, com a linha de cabeçalho incluída..."></textarea>
+      <div class="ust" id="us-res">Aguardando colagem...</div>
     </div>
 
     <div class="uc" id="uc-exe">
       <h3>📈 Resumo Executivo</h3>
       <p>AuC · AuM · ROA Total · Fee Fixo · NPS · Distratos</p>
-      <input type="file" id="fi-exe" accept=".xlsx,.xls,.csv"
-        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
-      <div class="ust" id="us-exe">Aguardando seleção...</div>
+      <div class="uc-actions"><span></span><button class="btn-limpar" onclick="limparCard('exe')">limpar</button></div>
+      <textarea id="ta-exe" placeholder="Cole aqui (Ctrl+V) os dados copiados do Excel, com a linha de cabeçalho incluída..."></textarea>
+      <div class="ust" id="us-exe">Aguardando colagem...</div>
     </div>
 
     <div class="uc" id="uc-lid">
       <h3>🎯 Liderança em Foco</h3>
       <p>Coordenador · Líder · HC · 12 meses (ago/25 → jul/26)</p>
-      <input type="file" id="fi-lid" accept=".xlsx,.xls,.csv"
-        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
-      <div class="ust" id="us-lid">Aguardando seleção...</div>
+      <div class="uc-actions"><span></span><button class="btn-limpar" onclick="limparCard('lid')">limpar</button></div>
+      <textarea id="ta-lid" placeholder="Cole aqui (Ctrl+V) os dados copiados do Excel, com a linha de cabeçalho incluída..."></textarea>
+      <div class="ust" id="us-lid">Aguardando colagem...</div>
     </div>
 
     <div class="uc" id="uc-cap">
       <h3>💰 Detalhamento de Captação</h3>
       <p>Data · Conta · Captação AuM · Nome Consultor (Assessor) · Líder · Coordenador</p>
-      <input type="file" id="fi-cap" accept=".xlsx,.xls,.csv"
-        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
-      <div class="ust" id="us-cap">Aguardando seleção...</div>
+      <div class="uc-actions"><span></span><button class="btn-limpar" onclick="limparCard('cap')">limpar</button></div>
+      <textarea id="ta-cap" placeholder="Cole aqui (Ctrl+V) os dados copiados do Excel, com a linha de cabeçalho incluída..."></textarea>
+      <div class="ust" id="us-cap">Aguardando colagem...</div>
     </div>
   </div>
 
   <div style="margin:20px 0;text-align:center">
-    <button id="btn-processar" onclick="processarTodas()">⚡ Processar planilhas selecionadas</button>
+    <button id="btn-processar" onclick="processarTodas()">⚡ Processar dados colados</button>
     <div id="prog-geral" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
   </div>
 
@@ -389,12 +409,12 @@ var CHARTS = {};
 var diagIniciado = false;
 
 var CFG = [
-  { id:'fi-col', chave:'col', nome:'Colaboradores' },
-  { id:'fi-crm', chave:'crm', nome:'Indicações CRM' },
-  { id:'fi-res', chave:'res', nome:'Resultados' },
-  { id:'fi-exe', chave:'exe', nome:'Resumo Executivo' },
-  { id:'fi-lid', chave:'lid', nome:'Liderança em Foco' },
-  { id:'fi-cap', chave:'cap', nome:'Captação' }
+  { taId:'ta-col', chave:'col', nome:'Colaboradores' },
+  { taId:'ta-crm', chave:'crm', nome:'Indicações CRM' },
+  { taId:'ta-res', chave:'res', nome:'Resultados' },
+  { taId:'ta-exe', chave:'exe', nome:'Resumo Executivo' },
+  { taId:'ta-lid', chave:'lid', nome:'Liderança em Foco' },
+  { taId:'ta-cap', chave:'cap', nome:'Captação' }
 ];
 
 var FIELDMAPS = {
@@ -499,6 +519,42 @@ function esc(v) {
   });
 }
 
+function parseColado(texto) {
+  var linhas = texto.replace(/\r/g, '').split('\n').filter(function (l) { return l.trim() !== ''; });
+  if (linhas.length < 2) return [];
+  var sep = linhas[0].indexOf('\t') !== -1 ? '\t' : (linhas[0].indexOf(';') !== -1 ? ';' : ',');
+  var headers = linhas[0].split(sep).map(function (h) { return h.trim(); });
+  var rows = [];
+  for (var i = 1; i < linhas.length; i++) {
+    var cols = linhas[i].split(sep);
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      obj[headers[j] || ('col' + j)] = cols[j] !== undefined ? cols[j].trim() : '';
+    }
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function tentarData(v) {
+  if (v instanceof Date) return v;
+  if (v == null || v === '') return v;
+  var s = String(v).trim();
+  var m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (m) {
+    var d = parseInt(m[1], 10), mo = parseInt(m[2], 10) - 1, y = parseInt(m[3], 10);
+    if (y < 100) y += 2000;
+    var dt = new Date(y, mo, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    var dt2 = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+    if (!isNaN(dt2.getTime())) return dt2;
+  }
+  return v;
+}
+
 var MESES_PT = ['ago','set','out','nov','dez','jan','fev','mar','abr','mai','jun','jul'];
 
 function detectarColunasMes(keys) {
@@ -545,6 +601,9 @@ function normalizar(chave, rows) {
       for (var m = 0; m < LID_MESES.length; m++) {
         obj.meses.push({ label: LID_MESES[m], valor: row[LID_MESES[m]] });
       }
+    }
+    if (chave === 'cap' || chave === 'crm') {
+      obj.data = tentarData(obj.data);
     }
     out.push(obj);
   }
@@ -595,17 +654,28 @@ function atualizarStatus() {
   document.getElementById('kv-pla');
 }
 
+function limparCard(chave) {
+  var ta = document.getElementById('ta-' + chave);
+  var us = document.getElementById('us-' + chave);
+  var uc = document.getElementById('uc-' + chave);
+  if (ta) ta.value = '';
+  if (us) { us.textContent = 'Aguardando colagem...'; us.style.color = ''; }
+  if (uc) uc.classList.remove('ok');
+  DD[chave] = [];
+  if (ND.hasOwnProperty(chave)) ND[chave] = [];
+}
+
 function processarTodas() {
   var pendentes = [];
   for (var i = 0; i < CFG.length; i++) {
-    var el = document.getElementById(CFG[i].id);
-    if (el && el.files && el.files.length > 0) {
-      pendentes.push({ cfg: CFG[i], arquivo: el.files[0] });
+    var el = document.getElementById(CFG[i].taId);
+    if (el && el.value && el.value.trim() !== '') {
+      pendentes.push({ cfg: CFG[i], texto: el.value });
     }
   }
 
   if (pendentes.length === 0) {
-    document.getElementById('prog-geral').textContent = '⚠️ Nenhuma planilha selecionada.';
+    document.getElementById('prog-geral').textContent = '⚠️ Nenhum dado colado nos campos acima.';
     return;
   }
 
@@ -624,7 +694,7 @@ function processarTodas() {
   function processarUm(idx) {
     if (idx >= pendentes.length) {
       btn.disabled = false;
-      btn.textContent = '⚡ Processar planilhas selecionadas';
+      btn.textContent = '⚡ Processar dados colados';
       btn.style.opacity = '1';
       prog.innerHTML = '<span style="color:#4ade80">✅ ' + concluidas + '/' + pendentes.length +
         ' processadas com sucesso!' + (erros > 0 ? ' (' + erros + ' erro(s))' : '') + '</span>';
@@ -636,29 +706,26 @@ function processarTodas() {
     var ucEl = document.getElementById('uc-' + item.cfg.chave);
 
     prog.textContent = (idx + 1) + '/' + pendentes.length + ' — processando ' + item.cfg.nome + '...';
-    usEl.textContent = 'Lendo...';
+    usEl.textContent = 'Interpretando dados colados...';
     usEl.style.color = 'rgba(255,255,255,.6)';
 
-    var reader = new FileReader();
-
-    reader.onload = function (ev) {
+    /* setTimeout(0) para permitir repaint da UI entre cada planilha */
+    setTimeout(function () {
       try {
-        var wb = XLSX.read(ev.target.result, { type: 'binary', cellDates: true });
-        var ws = wb.Sheets[wb.SheetNames[0]];
-        var rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        var rows = parseColado(item.texto);
+
+        if (rows.length === 0) {
+          throw new Error('nenhuma linha de dados encontrada (verifique se o cabeçalho foi colado)');
+        }
 
         DD[item.cfg.chave] = rows;
 
         if (item.cfg.chave === 'lid') {
           LID_MESES = rows.length ? detectarColunasMes(Object.keys(rows[0])) : [];
         }
-        if (item.cfg.chave !== 'exe') {
-          ND[item.cfg.chave] = normalizar(item.cfg.chave, rows);
-        } else {
-          ND.exe = normalizar('exe', rows);
-        }
+        ND[item.cfg.chave] = normalizar(item.cfg.chave, rows);
 
-        usEl.innerHTML = '&#10003; ' + rows.length + ' linhas carregadas';
+        usEl.innerHTML = '&#10003; ' + rows.length + ' linhas interpretadas';
         usEl.style.color = '#4ade80';
         if (ucEl) { ucEl.classList.add('ok'); }
 
@@ -670,16 +737,7 @@ function processarTodas() {
         erros++;
       }
       processarUm(idx + 1);
-    };
-
-    reader.onerror = function () {
-      usEl.textContent = 'Falha ao ler o arquivo.';
-      usEl.style.color = '#f87171';
-      erros++;
-      processarUm(idx + 1);
-    };
-
-    reader.readAsBinaryString(item.arquivo);
+    }, 10);
   }
 
   processarUm(0);
