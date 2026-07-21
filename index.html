@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Consultoria XP Inc. — Centro-Oeste &amp; MG</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-body:    #1A1A2E;
+  --bg-header:  #0F0F1E;
+  --bg-card:    #2D2D44;
+  --bg-table:   #0F0F1E;
+  --xp-yellow:  #F5A800;
+  --green:      #27AE60;
+  --green-dark: #1E8449;
+  --red:        #E74C3C;
+  --blue:       #2980B9;
+  --orange:     #E67E22;
+  --purple:     #8E44AD;
+  --text-main:  #FFFFFF;
+  --text-muted: rgba(255,255,255,0.45);
+  --text-table: rgba(255,255,255,0.55);
+  --border:     rgba(255,255,255,0.10);
+  --border-ok:  #27AE60;
+  --shadow:     0 4px 16px rgba(0,0,0,0.35);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text-main);
+  background: var(--bg-body);
+  margin: 0;
+}
+#hdr {
+  background: var(--bg-header);
+  padding: 16px 24px;
+  border-bottom: 3px solid var(--xp-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#hdr .brand { display: flex; align-items: center; gap: 10px; }
+#hdr .brand .dot { width: 12px; height: 12px; border-radius: 3px; background: var(--xp-yellow); }
+#hdr h1 { font-size: 16px; margin: 0; letter-spacing: 0.3px; }
+#hdr .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+#hdr .coord { text-align: right; font-size: 11px; color: var(--text-muted); }
+#hdr .coord b { color: var(--xp-yellow); display:block; font-size:12px; }
+
+#tabbar {
+  background: var(--bg-header);
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+#tabbar button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 12px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+#tabbar button:hover { color: var(--text-main); }
+#tabbar button.ativo { color: var(--xp-yellow); border-bottom-color: var(--xp-yellow); }
+
+.pag     { display: none;  padding: 20px 24px 40px; max-width: 1400px; margin: 0 auto; }
+.pag.on  { display: block; }
+
+.card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card h2 {
+  font-size: 12px;
+  color: var(--xp-yellow);
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 15px;
+  border-left: 4px solid var(--xp-yellow);
+}
+.kpi.g { border-left-color: var(--green); }
+.kpi.r { border-left-color: var(--red); }
+.kpi.b { border-left-color: var(--blue); }
+.kpi.o { border-left-color: var(--orange); }
+.kpi.p { border-left-color: var(--purple); }
+.kpi .kl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; }
+.kpi .kv { font-size: 22px; font-weight: 900; }
+.kpi .kv small { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+.h0 { background: #444;    color: rgba(255,255,255,0.4); }
+.h1 { background: #E74C3C; color: #fff; }
+.h2 { background: #E67E22; color: #fff; }
+.h3 { background: #F5A800; color: #1A1A2E; }
+.h4 { background: #27AE60; color: #fff; }
+.h5 { background: #1E8449; color: #fff; }
+
+table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+th {
+  background: var(--bg-table);
+  color: var(--xp-yellow);
+  padding: 8px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  text-align: left;
+}
+td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  white-space: nowrap;
+}
+tr:hover td { background: rgba(255,255,255,0.03); }
+.tblwrap { overflow: auto; max-height: 520px; border-radius: 8px; border: 1px solid var(--border); }
+
+.pos { color: #4ade80; font-weight: 700; }
+.neg { color: #f87171; font-weight: 700; }
+
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.ugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+@media (max-width: 768px) { .g2 { grid-template-columns: 1fr; } }
+
+.alerta {
+  background: rgba(245,168,0,0.08);
+  border: 1px solid rgba(245,168,0,0.35);
+  border-left: 4px solid var(--xp-yellow);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 18px;
+}
+
+.uc {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 14px;
+  border: 1.5px dashed rgba(255,255,255,0.15);
+  transition: border-color .2s, background .2s;
+}
+.uc.ok { border-style: solid; border-color: var(--border-ok); background: rgba(39,174,96,0.06); }
+.uc h3 { font-size: 12.5px; margin: 0 0 4px 0; }
+.uc p { font-size: 10.5px; color: var(--text-muted); margin: 0 0 8px 0; }
+.uc .ust { font-size: 11px; color: var(--text-muted); }
+
+#btn-processar { background: var(--xp-yellow); color: #1A1A2E; border: none; border-radius: 12px; padding: 14px 40px; font-size: 15px; font-weight: 900; cursor: pointer; }
+#btn-processar:disabled { cursor: default; }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.chip { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 10.5px; color: var(--text-table); }
+
+.search {
+  width: 100%; max-width: 320px; padding: 9px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text-main);
+  font-size: 12px; margin-bottom: 12px;
+}
+.search::placeholder { color: var(--text-muted); }
+
+.funil-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.funil-card { background: var(--bg-card); border-radius: 12px; padding: 14px; border-top: 4px solid var(--purple); }
+.funil-card .fl { font-size: 10px; text-transform: uppercase; color: var(--text-muted); letter-spacing: .4px; }
+.funil-card .fv { font-size: 20px; font-weight: 900; margin-top: 4px; }
+.funil-card .fs { font-size: 11px; color: var(--text-table); margin-top: 2px; }
+
+.hcell { text-align: center; border-radius: 5px; font-weight: 700; font-size: 11px; padding: 6px 4px !important; min-width: 46px; }
+.vazio-msg { color: var(--text-muted); font-size: 12px; padding: 30px; text-align: center; }
+canvas { max-height: 340px; }
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="brand">
+    <div class="dot"></div>
+    <div>
+      <h1>Dashboard Consultoria XP Inc.</h1>
+      <div class="sub">Região Centro-Oeste &amp; MG</div>
+    </div>
+  </div>
+  <div class="coord">
+    <b>Rafael da Cunha Moreira</b>
+    Coordenador Regional
+  </div>
+</div>
+
+<div id="tabbar">
+  <button class="ativo" onclick="mudarAba(this,'upload')">📁 Upload</button>
+  <button onclick="mudarAba(this,'visao')">📊 Visão Geral</button>
+  <button onclick="mudarAba(this,'assessoria')">👥 Assessoria</button>
+  <button onclick="mudarAba(this,'lideranca')">🎯 Liderança</button>
+  <button onclick="mudarAba(this,'captacao')">💰 Captação</button>
+  <button onclick="mudarAba(this,'funil')">🔄 Funil CRM</button>
+</div>
+
+<!-- ============ UPLOAD ============ -->
+<div id="pag-upload" class="pag on">
+  <div class="alerta">
+    ⚠️ Nenhum dado é enviado a servidores externos. Todo o processamento ocorre localmente, no seu navegador.
+    Carregue as planilhas abaixo (formatos .xlsx, .xls ou .csv) e clique em <b>Processar planilhas selecionadas</b>.
+  </div>
+
+  <div class="ugrid">
+    <div class="uc" id="uc-col">
+      <h3>📋 Colaboradores</h3>
+      <p>Código · Nome · UF · Função · Hierarquia · Status</p>
+      <input type="file" id="fi-col" accept=".xlsx,.xls,.csv"
+        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
+      <div class="ust" id="us-col">Aguardando seleção...</div>
+    </div>
+
+    <div class="uc" id="uc-crm">
+      <h3>🔄 Indicações CRM</h3>
+      <p>Assessor · Fase · Valor · Data · Coordenador · Líder</p>
+      <input type="file" id="fi-crm" accept=".xlsx,.xls,.csv"
+        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
+      <div class="ust" id="us-crm">Aguardando seleção...</div>
+    </div>
+
+    <div class="uc" id="uc-res">
+      <h3>🏆 Resultados Finalísticos</h3>
+      <p>Coordenador · Líder · Assessor · AuM · Receita · ROA · NPS</p>
+      <input type="file" id="fi-res" accept=".xlsx,.xls,.csv"
+        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
+      <div class="ust" id="us-res">Aguardando seleção...</div>
+    </div>
+
+    <div class="uc" id="uc-exe">
+      <h3>📈 Resumo Executivo</h3>
+      <p>AuC · AuM · ROA Total · Fee Fixo · NPS · Distratos</p>
+      <input type="file" id="fi-exe" accept=".xlsx,.xls,.csv"
+        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
+      <div class="ust" id="us-exe">Aguardando seleção...</div>
+    </div>
+
+    <div class="uc" id="uc-lid">
+      <h3>🎯 Liderança em Foco</h3>
+      <p>Coordenador · Líder · HC · 12 meses (ago/25 → jul/26)</p>
+      <input type="file" id="fi-lid" accept=".xlsx,.xls,.csv"
+        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
+      <div class="ust" id="us-lid">Aguardando seleção...</div>
+    </div>
+
+    <div class="uc" id="uc-cap">
+      <h3>💰 Detalhamento de Captação</h3>
+      <p>Data · Conta · Captação AuM · Nome Consultor (Assessor) · Líder · Coordenador</p>
+      <input type="file" id="fi-cap" accept=".xlsx,.xls,.csv"
+        style="color:rgba(255,255,255,.7);font-size:11px;display:block;width:100%;margin-bottom:6px">
+      <div class="ust" id="us-cap">Aguardando seleção...</div>
+    </div>
+  </div>
+
+  <div style="margin:20px 0;text-align:center">
+    <button id="btn-processar" onclick="processarTodas()">⚡ Processar planilhas selecionadas</button>
+    <div id="prog-geral" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5)"></div>
+  </div>
+
+  <div class="card" id="diag-card" style="display:none">
+    <h2>🔍 Colunas detectadas</h2>
+    <div id="diag"></div>
+  </div>
+</div>
+
+<!-- ============ VISÃO GERAL ============ -->
+<div id="pag-visao" class="pag">
+  <div class="kpis">
+    <div class="kpi b"><div class="kl">Total Colaboradores</div><div class="kv" id="kv-col">—</div></div>
+    <div class="kpi g"><div class="kl">Captação Bruta</div><div class="kv" id="kv-bru">—</div></div>
+    <div class="kpi r"><div class="kl">Resgates</div><div class="kv" id="kv-res">—</div></div>
+    <div class="kpi" ><div class="kl">Captação Líquida</div><div class="kv" id="kv-liq">—</div></div>
+    <div class="kpi p"><div class="kl">Indicações CRM</div><div class="kv" id="kv-crm">—</div></div>
+    <div class="kpi o"><div class="kl">Planilhas carregadas</div><div class="kv" id="kv-pla">—</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h2>Colaboradores por UF</h2>
+      <canvas id="chart-uf"></canvas>
+      <div id="vazio-uf" class="vazio-msg" style="display:none">Carregue a planilha de Colaboradores.</div>
+    </div>
+    <div class="card">
+      <h2>Top 10 Assessores por Indicações</h2>
+      <canvas id="chart-top"></canvas>
+      <div id="vazio-top" class="vazio-msg" style="display:none">Carregue a planilha de Indicações CRM.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ASSESSORIA ============ -->
+<div id="pag-assessoria" class="pag">
+  <div class="card">
+    <h2>👥 Base de Colaboradores</h2>
+    <input class="search" id="busca-assessoria" placeholder="Buscar por nome, UF, função ou status..." oninput="renderAssessoria()">
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Código</th><th>Nome</th><th>UF</th><th>Função</th><th>Hierarquia</th><th>Status</th></tr></thead>
+        <tbody id="tb-assessoria"></tbody>
+      </table>
+    </div>
+    <div id="vazio-assessoria" class="vazio-msg" style="display:none">Carregue a planilha de Colaboradores para visualizar a equipe.</div>
+  </div>
+</div>
+
+<!-- ============ LIDERANÇA ============ -->
+<div id="pag-lideranca" class="pag">
+  <div class="card">
+    <h2>🎯 Performance de Lideranças — Últimos 12 meses</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr id="th-lideranca"><th>Coordenador</th><th>Líder</th><th>HC</th></tr></thead>
+        <tbody id="tb-lideranca"></tbody>
+      </table>
+    </div>
+    <div id="vazio-lideranca" class="vazio-msg" style="display:none">Carregue a planilha Liderança em Foco.</div>
+  </div>
+</div>
+
+<!-- ============ CAPTAÇÃO ============ -->
+<div id="pag-captacao" class="pag">
+  <div class="kpis" id="kpis-captacao"></div>
+  <div class="card">
+    <h2>💰 Detalhamento de Captação</h2>
+    <input class="search" id="busca-captacao" placeholder="Buscar por assessor, líder, coordenador ou conta..." oninput="renderCaptacao()">
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Data</th><th>Conta</th><th>Assessor</th><th>Líder</th><th>Coordenador</th><th>Captação AuM</th></tr></thead>
+        <tbody id="tb-captacao"></tbody>
+      </table>
+    </div>
+    <div id="vazio-captacao" class="vazio-msg" style="display:none">Carregue a planilha de Detalhamento de Captação.</div>
+  </div>
+</div>
+
+<!-- ============ FUNIL CRM ============ -->
+<div id="pag-funil" class="pag">
+  <div class="funil-cards" id="funil-cards"></div>
+  <div class="g2">
+    <div class="card">
+      <h2>Top 10 Assessores por Indicações</h2>
+      <canvas id="chart-funil-top"></canvas>
+    </div>
+    <div class="card">
+      <h2>Indicações por Fase</h2>
+      <canvas id="chart-funil-fase"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h2>🔄 Indicações CRM — Detalhamento</h2>
+    <input class="search" id="busca-funil" placeholder="Buscar por assessor, fase, líder ou coordenador..." oninput="renderFunil()">
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Assessor</th><th>Fase</th><th>Valor</th><th>Data</th><th>Líder</th><th>Coordenador</th></tr></thead>
+        <tbody id="tb-funil"></tbody>
+      </table>
+    </div>
+    <div id="vazio-funil" class="vazio-msg" style="display:none">Carregue a planilha de Indicações CRM.</div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DADOS BRUTOS E NORMALIZADOS
+   ========================================================= */
+var DD = { col: [], crm: [], res: [], exe: [], lid: [], cap: [] };
+var ND = { col: [], crm: [], res: [], exe: [], lid: [] };
+var LID_MESES = []; // colunas de mês detectadas na planilha de Liderança
+var CHARTS = {};
+var diagIniciado = false;
+
+var CFG = [
+  { id:'fi-col', chave:'col', nome:'Colaboradores' },
+  { id:'fi-crm', chave:'crm', nome:'Indicações CRM' },
+  { id:'fi-res', chave:'res', nome:'Resultados' },
+  { id:'fi-exe', chave:'exe', nome:'Resumo Executivo' },
+  { id:'fi-lid', chave:'lid', nome:'Liderança em Foco' },
+  { id:'fi-cap', chave:'cap', nome:'Captação' }
+];
+
+var FIELDMAPS = {
+  col: {
+    codigo:['codigo','code','id'],
+    nome:['nome','name','assessor','consultor'],
+    uf:['uf','estado','state'],
+    funcao:['funcao','cargo','role'],
+    hierarquia:['hierarquia','hierarq','nivel','level'],
+    status:['status','ativo','ativa','situacao']
+  },
+  crm: {
+    codigoAssessor:['codigoassessor','codassessor','codigo'],
+    assessor:['nomeassessor','assessor','consultor','nome'],
+    fase:['fase','stage','etapa','status'],
+    valor:['valor','value','aum','montante'],
+    data:['data','datacriacao','date','criacao'],
+    coordenador:['coordenador','coord'],
+    lider:['lider','lideranca','líder']
+  },
+  res: {
+    coordenador:['coordenador','coord'],
+    lider:['lideranca','lider','líder'],
+    assessor:['assessor','consultor','nome'],
+    aum:['aum','patrimonio','montante'],
+    receita:['receita','revenue'],
+    roa:['roa','retorno'],
+    nps:['nps','satisfacao']
+  },
+  exe: {
+    auc:['auc'],
+    aum:['aum'],
+    roaTotal:['roa','roatotal'],
+    feeFixo:['feefixo','fee'],
+    nps:['nps'],
+    distratos:['distratos','distrato'],
+    feePonderado:['feeponderado','feepond']
+  },
+  lid: {
+    coordenador:['coordenador','coord'],
+    lider:['lider','lideranca','nome','líder'],
+    hc:['hc','headcount','colaboradores']
+  },
+  cap: {
+    data:['data','date'],
+    conta:['conta','account'],
+    valor:['captacao','aum','valor'],
+    assessor:['nomeconsultor','consultor','assessor','nome'],
+    lider:['lider','líder'],
+    coordenador:['coordenador','coord']
+  }
+};
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function normKey(s) {
+  return String(s == null ? '' : s)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function pickField(row, variacoes) {
+  var keys = Object.keys(row);
+  for (var i = 0; i < keys.length; i++) {
+    var nk = normKey(keys[i]);
+    for (var j = 0; j < variacoes.length; j++) {
+      if (nk === normKey(variacoes[j])) return row[keys[i]];
+    }
+  }
+  return '';
+}
+
+function paraNumero(v) {
+  if (typeof v === 'number') return v;
+  if (v == null || v === '') return 0;
+  var s = String(v).trim();
+  s = s.replace(/[^\d,.\-]/g, '');
+  if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.indexOf(',') !== -1) {
+    s = s.replace(',', '.');
+  }
+  var n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function fmtMoeda(v) {
+  var n = paraNumero(v);
+  return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function fmtNum(v) {
+  var n = paraNumero(v);
+  return n.toLocaleString('pt-BR');
+}
+
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+var MESES_PT = ['ago','set','out','nov','dez','jan','fev','mar','abr','mai','jun','jul'];
+
+function detectarColunasMes(keys) {
+  var achadas = [];
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var nk = normKey(k);
+    var isMes = String(k).indexOf('/') !== -1;
+    if (!isMes) {
+      for (var j = 0; j < MESES_PT.length; j++) {
+        if (nk.indexOf(MESES_PT[j]) === 0) { isMes = true; break; }
+      }
+    }
+    if (isMes) achadas.push(k);
+  }
+  return achadas;
+}
+
+function heatClasse(v) {
+  var n = paraNumero(v);
+  if (!v && v !== 0) return 'h0';
+  if (n <= 0) return 'h0';
+  if (n <= 30) return 'h1';
+  if (n <= 60) return 'h2';
+  if (n <= 80) return 'h3';
+  if (n <= 100) return 'h4';
+  return 'h5';
+}
+
+/* =========================================================
+   NORMALIZAÇÃO POR PLANILHA
+   ========================================================= */
+function normalizar(chave, rows) {
+  var map = FIELDMAPS[chave];
+  var out = [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var obj = {};
+    for (var campo in map) {
+      if (map.hasOwnProperty(campo)) obj[campo] = pickField(row, map[campo]);
+    }
+    if (chave === 'lid') {
+      obj.meses = [];
+      for (var m = 0; m < LID_MESES.length; m++) {
+        obj.meses.push({ label: LID_MESES[m], valor: row[LID_MESES[m]] });
+      }
+    }
+    out.push(obj);
+  }
+  return out;
+}
+
+/* =========================================================
+   NAVEGAÇÃO ENTRE ABAS
+   ========================================================= */
+var ABAS = ['upload','visao','assessoria','lideranca','captacao','funil'];
+
+function mudarAba(btn, nome) {
+  var i, p, btns;
+  for (i = 0; i < ABAS.length; i++) {
+    p = document.getElementById('pag-' + ABAS[i]);
+    if (p) { p.className = 'pag' + (ABAS[i] === nome ? ' on' : ''); }
+  }
+  btns = document.querySelectorAll('#tabbar button');
+  for (i = 0; i < btns.length; i++) { btns[i].className = ''; }
+  btn.className = 'ativo';
+
+  if (nome === 'visao')      { renderVisao(); }
+  if (nome === 'assessoria') { renderAssessoria(); }
+  if (nome === 'lideranca')  { renderLideranca(); }
+  if (nome === 'captacao')   { renderCaptacao(); }
+  if (nome === 'funil')      { renderFunil(); }
+}
+
+/* =========================================================
+   UPLOAD E PROCESSAMENTO
+   ========================================================= */
+function mostrarDiag(chave, nome, rows) {
+  if (!diagIniciado) {
+    document.getElementById('diag-card').style.display = 'block';
+    diagIniciado = true;
+  }
+  var cols = rows.length ? Object.keys(rows[0]) : [];
+  var html = '<div style="margin-bottom:14px">';
+  html += '<b style="color:var(--xp-yellow)">' + esc(nome) + '</b>';
+  html += ' <span style="color:var(--text-muted);font-size:11px">— ' + rows.length + ' linhas · ' + cols.length + ' colunas</span>';
+  html += '<div class="chips">';
+  for (var i = 0; i < cols.length; i++) { html += '<span class="chip">' + esc(cols[i]) + '</span>'; }
+  html += '</div></div>';
+  document.getElementById('diag').innerHTML += html;
+}
+
+function atualizarStatus() {
+  document.getElementById('kv-pla');
+}
+
+function processarTodas() {
+  var pendentes = [];
+  for (var i = 0; i < CFG.length; i++) {
+    var el = document.getElementById(CFG[i].id);
+    if (el && el.files && el.files.length > 0) {
+      pendentes.push({ cfg: CFG[i], arquivo: el.files[0] });
+    }
+  }
+
+  if (pendentes.length === 0) {
+    document.getElementById('prog-geral').textContent = '⚠️ Nenhuma planilha selecionada.';
+    return;
+  }
+
+  var btn = document.getElementById('btn-processar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Processando...';
+  btn.style.opacity = '0.7';
+
+  var prog = document.getElementById('prog-geral');
+  var concluidas = 0;
+  var erros = 0;
+  diagIniciado = false;
+  document.getElementById('diag').innerHTML = '';
+  document.getElementById('diag-card').style.display = 'none';
+
+  function processarUm(idx) {
+    if (idx >= pendentes.length) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Processar planilhas selecionadas';
+      btn.style.opacity = '1';
+      prog.innerHTML = '<span style="color:#4ade80">✅ ' + concluidas + '/' + pendentes.length +
+        ' processadas com sucesso!' + (erros > 0 ? ' (' + erros + ' erro(s))' : '') + '</span>';
+      return;
+    }
+
+    var item = pendentes[idx];
+    var usEl = document.getElementById('us-' + item.cfg.chave);
+    var ucEl = document.getElementById('uc-' + item.cfg.chave);
+
+    prog.textContent = (idx + 1) + '/' + pendentes.length + ' — processando ' + item.cfg.nome + '...';
+    usEl.textContent = 'Lendo...';
+    usEl.style.color = 'rgba(255,255,255,.6)';
+
+    var reader = new FileReader();
+
+    reader.onload = function (ev) {
+      try {
+        var wb = XLSX.read(ev.target.result, { type: 'binary', cellDates: true });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        DD[item.cfg.chave] = rows;
+
+        if (item.cfg.chave === 'lid') {
+          LID_MESES = rows.length ? detectarColunasMes(Object.keys(rows[0])) : [];
+        }
+        if (item.cfg.chave !== 'exe') {
+          ND[item.cfg.chave] = normalizar(item.cfg.chave, rows);
+        } else {
+          ND.exe = normalizar('exe', rows);
+        }
+
+        usEl.innerHTML = '&#10003; ' + rows.length + ' linhas carregadas';
+        usEl.style.color = '#4ade80';
+        if (ucEl) { ucEl.classList.add('ok'); }
+
+        mostrarDiag(item.cfg.chave, item.cfg.nome, rows);
+        concluidas++;
+      } catch (e) {
+        usEl.textContent = 'Erro: ' + e.message;
+        usEl.style.color = '#f87171';
+        erros++;
+      }
+      processarUm(idx + 1);
+    };
+
+    reader.onerror = function () {
+      usEl.textContent = 'Falha ao ler o arquivo.';
+      usEl.style.color = '#f87171';
+      erros++;
+      processarUm(idx + 1);
+    };
+
+    reader.readAsBinaryString(item.arquivo);
+  }
+
+  processarUm(0);
+}
+
+/* =========================================================
+   ABA VISÃO GERAL
+   ========================================================= */
+function destruirChart(id) {
+  if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
+}
+
+function renderVisao() {
+  var totalCol = ND.col.length;
+  var bruta = 0, resgates = 0;
+  for (var i = 0; i < ND.cap.length; i++) {
+    var v = paraNumero(ND.cap[i].valor);
+    if (v >= 0) bruta += v; else resgates += Math.abs(v);
+  }
+  var liquida = bruta - resgates;
+  var totalCrm = ND.crm.length;
+  var planilhasCarregadas = 0;
+  for (var k in DD) { if (DD.hasOwnProperty(k) && DD[k].length > 0) planilhasCarregadas++; }
+
+  document.getElementById('kv-col').textContent = fmtNum(totalCol);
+  document.getElementById('kv-bru').textContent = fmtMoeda(bruta);
+  document.getElementById('kv-res').textContent = fmtMoeda(resgates);
+  document.getElementById('kv-liq').innerHTML = fmtMoeda(liquida) + (liquida >= 0 ? '' : '');
+  document.getElementById('kv-crm').textContent = fmtNum(totalCrm);
+  document.getElementById('kv-pla').textContent = planilhasCarregadas + ' / 6';
+
+  /* Gráfico: colaboradores por UF */
+  var ufCount = {};
+  for (var j = 0; j < ND.col.length; j++) {
+    var uf = (ND.col[j].uf || 'N/D').toString().toUpperCase().trim() || 'N/D';
+    ufCount[uf] = (ufCount[uf] || 0) + 1;
+  }
+  var ufLabels = Object.keys(ufCount).sort();
+  var ufValores = ufLabels.map(function (u) { return ufCount[u]; });
+
+  destruirChart('uf');
+  document.getElementById('vazio-uf').style.display = ufLabels.length ? 'none' : 'block';
+  if (ufLabels.length) {
+    var ctxUf = document.getElementById('chart-uf').getContext('2d');
+    CHARTS.uf = new Chart(ctxUf, {
+      type: 'bar',
+      data: { labels: ufLabels, datasets: [{ label: 'Colaboradores', data: ufValores, backgroundColor: '#F5A800', borderRadius: 6 }] },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { color: 'rgba(255,255,255,.05)' } },
+          y: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { color: 'rgba(255,255,255,.05)' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  /* Gráfico: top 10 assessores por indicações */
+  var crmCount = {};
+  for (var m = 0; m < ND.crm.length; m++) {
+    var nome = (ND.crm[m].assessor || 'N/D').toString().trim() || 'N/D';
+    crmCount[nome] = (crmCount[nome] || 0) + 1;
+  }
+  var topArr = Object.keys(crmCount).map(function (n) { return { nome: n, qtd: crmCount[n] }; });
+  topArr.sort(function (a, b) { return b.qtd - a.qtd; });
+  topArr = topArr.slice(0, 10);
+
+  destruirChart('top');
+  document.getElementById('vazio-top').style.display = topArr.length ? 'none' : 'block';
+  if (topArr.length) {
+    var ctxTop = document.getElementById('chart-top').getContext('2d');
+    CHARTS.top = new Chart(ctxTop, {
+      type: 'bar',
+      data: {
+        labels: topArr.map(function (t) { return t.nome; }),
+        datasets: [{ label: 'Indicações', data: topArr.map(function (t) { return t.qtd; }), backgroundColor: '#8E44AD', borderRadius: 6 }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { color: 'rgba(255,255,255,.05)' }, beginAtZero: true },
+          y: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+
+/* =========================================================
+   ABA ASSESSORIA
+   ========================================================= */
+function renderAssessoria() {
+  var termo = normKey(document.getElementById('busca-assessoria').value);
+  var tb = document.getElementById('tb-assessoria');
+  var linhas = ND.col.filter(function (r) {
+    if (!termo) return true;
+    var alvo = normKey([r.nome, r.uf, r.funcao, r.status, r.hierarquia].join(' '));
+    return alvo.indexOf(termo) !== -1;
+  });
+
+  document.getElementById('vazio-assessoria').style.display = ND.col.length ? 'none' : 'block';
+
+  var html = '';
+  for (var i = 0; i < linhas.length; i++) {
+    var r = linhas[i];
+    html += '<tr>' +
+      '<td>' + esc(r.codigo) + '</td>' +
+      '<td>' + esc(r.nome) + '</td>' +
+      '<td>' + esc(r.uf) + '</td>' +
+      '<td>' + esc(r.funcao) + '</td>' +
+      '<td>' + esc(r.hierarquia) + '</td>' +
+      '<td>' + esc(r.status) + '</td>' +
+      '</tr>';
+  }
+  tb.innerHTML = html || '<tr><td colspan="6" style="color:var(--text-muted)">Nenhum resultado.</td></tr>';
+}
+
+/* =========================================================
+   ABA LIDERANÇA — HEATMAP
+   ========================================================= */
+function renderLideranca() {
+  var thead = document.getElementById('th-lideranca');
+  var tb = document.getElementById('tb-lideranca');
+  document.getElementById('vazio-lideranca').style.display = ND.lid.length ? 'none' : 'block';
+
+  var htHead = '<th>Coordenador</th><th>Líder</th><th>HC</th>';
+  for (var m = 0; m < LID_MESES.length; m++) { htHead += '<th>' + esc(LID_MESES[m]) + '</th>'; }
+  thead.innerHTML = htHead;
+
+  var html = '';
+  for (var i = 0; i < ND.lid.length; i++) {
+    var r = ND.lid[i];
+    html += '<tr>' +
+      '<td>' + esc(r.coordenador) + '</td>' +
+      '<td>' + esc(r.lider) + '</td>' +
+      '<td>' + esc(r.hc) + '</td>';
+    for (var j = 0; j < r.meses.length; j++) {
+      var v = r.meses[j].valor;
+      var cls = heatClasse(v);
+      html += '<td class="hcell ' + cls + '">' + (v === '' ? '—' : esc(v)) + '</td>';
+    }
+    html += '</tr>';
+  }
+  tb.innerHTML = html || '<tr><td colspan="' + (3 + LID_MESES.length) + '" style="color:var(--text-muted)">Nenhum dado disponível.</td></tr>';
+}
+
+/* =========================================================
+   ABA CAPTAÇÃO
+   ========================================================= */
+function fmtData(v) {
+  if (v == null || v === '') return '—';
+  if (v instanceof Date) return v.toLocaleDateString('pt-BR');
+  return String(v);
+}
+
+function renderCaptacao() {
+  var termo = normKey(document.getElementById('busca-captacao').value);
+  var tb = document.getElementById('tb-captacao');
+  document.getElementById('vazio-captacao').style.display = ND.cap.length ? 'none' : 'block';
+
+  var linhas = ND.cap.filter(function (r) {
+    if (!termo) return true;
+    var alvo = normKey([r.assessor, r.lider, r.coordenador, r.conta].join(' '));
+    return alvo.indexOf(termo) !== -1;
+  });
+
+  var ordenadas = linhas.slice().sort(function (a, b) {
+    var da = a.data instanceof Date ? a.data.getTime() : 0;
+    var db = b.data instanceof Date ? b.data.getTime() : 0;
+    return db - da;
+  });
+
+  var bruta = 0, resgates = 0;
+  for (var i = 0; i < ND.cap.length; i++) {
+    var v = paraNumero(ND.cap[i].valor);
+    if (v >= 0) bruta += v; else resgates += Math.abs(v);
+  }
+  document.getElementById('kpis-captacao').innerHTML =
+    '<div class="kpi g"><div class="kl">Captação Bruta</div><div class="kv">' + fmtMoeda(bruta) + '</div></div>' +
+    '<div class="kpi r"><div class="kl">Resgates</div><div class="kv">' + fmtMoeda(resgates) + '</div></div>' +
+    '<div class="kpi b"><div class="kl">Captação Líquida</div><div class="kv">' + fmtMoeda(bruta - resgates) + '</div></div>' +
+    '<div class="kpi o"><div class="kl">Operações</div><div class="kv">' + fmtNum(ND.cap.length) + '</div></div>';
+
+  var html = '';
+  for (var k = 0; k < ordenadas.length; k++) {
+    var r = ordenadas[k];
+    var val = paraNumero(r.valor);
+    var cls = val >= 0 ? 'pos' : 'neg';
+    html += '<tr>' +
+      '<td>' + fmtData(r.data) + '</td>' +
+      '<td>' + esc(r.conta) + '</td>' +
+      '<td>' + esc(r.assessor) + '</td>' +
+      '<td>' + esc(r.lider) + '</td>' +
+      '<td>' + esc(r.coordenador) + '</td>' +
+      '<td class="' + cls + '">' + fmtMoeda(val) + '</td>' +
+      '</tr>';
+  }
+  tb.innerHTML = html || '<tr><td colspan="6" style="color:var(--text-muted)">Nenhum resultado.</td></tr>';
+}
+
+/* =========================================================
+   ABA FUNIL CRM
+   ========================================================= */
+function renderFunil() {
+  document.getElementById('vazio-funil').style.display = ND.crm.length ? 'none' : 'block';
+
+  /* Cards por fase */
+  var fases = {};
+  for (var i = 0; i < ND.crm.length; i++) {
+    var f = (ND.crm[i].fase || 'Não informado').toString().trim() || 'Não informado';
+    if (!fases[f]) fases[f] = { qtd: 0, valor: 0 };
+    fases[f].qtd++;
+    fases[f].valor += paraNumero(ND.crm[i].valor);
+  }
+  var faseKeys = Object.keys(fases);
+  var cardsHtml = '';
+  for (var j = 0; j < faseKeys.length; j++) {
+    var fk = faseKeys[j];
+    cardsHtml += '<div class="funil-card">' +
+      '<div class="fl">' + esc(fk) + '</div>' +
+      '<div class="fv">' + fmtNum(fases[fk].qtd) + '</div>' +
+      '<div class="fs">' + fmtMoeda(fases[fk].valor) + '</div>' +
+      '</div>';
+  }
+  document.getElementById('funil-cards').innerHTML = cardsHtml || '<div class="vazio-msg">Carregue a planilha de Indicações CRM.</div>';
+
+  /* Gráfico top 10 assessores */
+  var crmCount = {};
+  for (var m = 0; m < ND.crm.length; m++) {
+    var nome = (ND.crm[m].assessor || 'N/D').toString().trim() || 'N/D';
+    crmCount[nome] = (crmCount[nome] || 0) + 1;
+  }
+  var topArr = Object.keys(crmCount).map(function (n) { return { nome: n, qtd: crmCount[n] }; });
+  topArr.sort(function (a, b) { return b.qtd - a.qtd; });
+  topArr = topArr.slice(0, 10);
+
+  destruirChart('funilTop');
+  if (topArr.length) {
+    var ctx1 = document.getElementById('chart-funil-top').getContext('2d');
+    CHARTS.funilTop = new Chart(ctx1, {
+      type: 'bar',
+      data: { labels: topArr.map(function (t) { return t.nome; }), datasets: [{ label: 'Indicações', data: topArr.map(function (t) { return t.qtd; }), backgroundColor: '#F5A800', borderRadius: 6 }] },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { color: 'rgba(255,255,255,.05)' }, beginAtZero: true },
+          y: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  destruirChart('funilFase');
+  if (faseKeys.length) {
+    var ctx2 = document.getElementById('chart-funil-fase').getContext('2d');
+    CHARTS.funilFase = new Chart(ctx2, {
+      type: 'bar',
+      data: { labels: faseKeys, datasets: [{ label: 'Indicações', data: faseKeys.map(function (f) { return fases[f].qtd; }), backgroundColor: '#2980B9', borderRadius: 6 }] },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { color: 'rgba(255,255,255,.05)' } },
+          y: { ticks: { color: 'rgba(255,255,255,.6)' }, grid: { color: 'rgba(255,255,255,.05)' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  /* Tabela detalhada */
+  var termo = normKey(document.getElementById('busca-funil').value);
+  var linhas = ND.crm.filter(function (r) {
+    if (!termo) return true;
+    var alvo = normKey([r.assessor, r.fase, r.lider, r.coordenador].join(' '));
+    return alvo.indexOf(termo) !== -1;
+  });
+  var html = '';
+  for (var k = 0; k < linhas.length; k++) {
+    var r = linhas[k];
+    html += '<tr>' +
+      '<td>' + esc(r.assessor) + '</td>' +
+      '<td>' + esc(r.fase) + '</td>' +
+      '<td>' + fmtMoeda(r.valor) + '</td>' +
+      '<td>' + fmtData(r.data) + '</td>' +
+      '<td>' + esc(r.lider) + '</td>' +
+      '<td>' + esc(r.coordenador) + '</td>' +
+      '</tr>';
+  }
+  document.getElementById('tb-funil').innerHTML = html || '<tr><td colspan="6" style="color:var(--text-muted)">Nenhum resultado.</td></tr>';
+}
+</script>
+</body>
+</html>
